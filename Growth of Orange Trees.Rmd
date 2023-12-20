@@ -1,0 +1,286 @@
+---
+title: "5301 Final Project"
+author: "Hariharan Selvam"
+date: "`r Sys.Date()`"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+## TOPIC: TWO-WAY ANOVA
+
+
+## About the dataset:
+It is collected from r packages.
+It contains measurements of trunk circumference (in millimeters) for five orange trees over a span of seven time points
+The dataset captures the growth of these trees over time
+
+There are three different features.
+1. Tree: A factor indicating the tree number (1 to 5).
+2. Age: The age of the tree in days since December 31, 1968.
+3. circumference: Trunk circumference of the tree in millimeters.
+
+## Importing the dataset:
+
+```{r }
+#Importing the dataset
+data("Orange")
+Orange
+df <- data.frame(Orange)
+df
+df$Tree <- as.factor(df$Tree)
+df$Tree <- factor(df$Tree)
+
+
+
+df_numeric <- data.frame(Orange)
+df_numeric$Tree <- as.numeric(as.character(df$Tree))
+df_numeric$age <- as.numeric(as.character(df$age))
+
+str(df$Tree)
+str(df$age)
+summary(df$Tree)
+summary(df$age)
+summary(df)
+summary(is.na(df))
+```
+```{r}
+head(df)
+```
+
+## Null and Alternate hypotheses:
+In two-way ANOVA, there will be 3 different null and alternate hypotheses.
+
+case 1:
+Null hypothesis: Mean factor of column Tree is same
+Alternate hypothesis: Mean factor of column Tree is not same
+
+case2:
+Null hypothesis: Mean factor of column age is same
+Alternate hypothesis: Mean factor of column age is not same
+
+Case3:
+Null Hypothesis: There is no interaction between the factor Tree and age
+Alternate Hypothesis: There is interaction between the factor Tree and age
+
+Here we're taking the significant value as 0.05
+
+## Descriptive Data Analysis and Exploratory Data Analysis:
+
+```{r}
+# Summary statistics for the entire dataset
+summary(df)
+
+# Summary statistics for specific variables
+summary(df$age)
+summary(df$Tree)
+summary(df$circumference)
+
+```
+
+## Histogram:
+
+Here we've plotted histogram for numerical variable 'circumference'
+The following r code is used to perform.
+
+hist(df$circumference, main = "Circumference Distribution", xlab = "Circumference")
+
+
+```{r}
+# Histogram for a numeric variable
+hist(df$circumference, main = "Circumference Distribution", xlab = "Circumference")
+
+```
+Here we found that the histogram is,
+Unimodal distribution: The peak at around 150 units of circumference indicates that this is the most common circumference value.
+
+Approximately symmetrical distribution: The roughly equal left and right halves suggest a normal distribution.
+
+Majority of values clustered around 150: The majority of the circumference values fall within the range centered around 150.
+
+Mode at 150: The most common circumference value is 150.
+
+Median near 150: Half of the values are above 150 and half below.
+
+Range from 50 to 200: The data set spans a range of 150 units.
+
+## Statistical parameters for the numerical variable
+
+
+```{r}
+# Mean and median
+mean(df$circumference)
+median(df$circumference)
+
+# Standard deviation and interquartile range
+sd(df$circumference)
+IQR(df$circumference)
+
+```
+From the above code we got to know that,
+The mean value for circumference is 115.8571.
+The median value for circumference is  115.
+The standard deviation value for circumference is 57.48818.
+The interquartile range value for circumference is 96.
+
+## Correlation matrix:
+
+```{r}
+
+cor_matrix <- cor(df_numeric[, c("age", "Tree", "circumference")])
+print(cor_matrix)
+library(corrplot)
+corrplot(cor_matrix, method = "color")
+
+```
+From the correlation matrix:
+
+The correlation between age and Tree is 0.8, which indicates a strong positive relationship. 
+
+The correlation between Tree and circumference is 0.9, which also indicates a strong positive relationship. 
+
+The correlation between age and circumference is 0.7, which indicates a moderate positive relationship. 
+
+Overall, the correlation matrix shows that there is a strong positive relationship between all three variables.
+
+## Boxplot:
+
+```{r}
+boxplot(circumference ~ Tree, data = df, main = "Circumference by Tree", xlab = "Tree", ylab = "Circumference")
+```
+
+From the boxplot,
+The median circumference value is highest for tree 5, followed by tree 4 and tree 3.
+
+The IQR is smallest for tree 3 and largest for tree 1. This indicates that the circumference values for tree 3 are more tightly clustered around the median, while the circumference values for tree 1 are more spread out.
+
+There are no outliers detected in any of the groups.
+
+
+
+## Assumptions:
+
+## Shapiro- Wilk test for normality:
+
+
+```{r }
+shapiro_test <- shapiro.test(Orange$circumference)
+print(shapiro_test)
+
+qqnorm(Orange$circumference)
+qqline(Orange$circumference, col="green")
+
+```
+here our p-value >0.05 , so we can conclude that the data follows normal distribution
+And also here we've failed to reject the null hypothesis.
+
+
+## Barlette test for Homogeneity of variance:
+```{r}
+barlett_test <- bartlett.test(circumference ~ Tree, data = df)
+print(barlett_test)
+```
+Here our p-value >0.05 , so we can conclude that variances are equal across the groups.
+
+## Two way ANOVA
+
+```{r}
+#Two-way ANOVA
+two_way_anova <- aov(circumference ~ age + Tree + age:Tree, data = df)
+summary(two_way_anova)
+```
+From this two way ANOVA test, we got to know
+
+## Main Effect of 'age':
+
+Degrees of Freedom (Df): 1
+Sum of Squares (Sum Sq): 93771.54
+Mean Square (Mean Sq): 93771.54
+F-value: 864.735
+p-value (Pr(>F)): < 2e-16 (extremely small)
+The main effect of 'age' is highly significant, suggesting that the mean 'circumference' significantly differs across different levels of 'age'.
+
+## Main Effect of 'Tree':
+  
+Degrees of Freedom (Df): 4
+Sum of Squares (Sum Sq): 11840.86
+Mean Square (Mean Sq): 2960.22
+F-value: 27.298
+p-value (Pr(>F)): 8.43e-09 (extremely small)
+The main effect of 'Tree' is highly significant, indicating that the mean 'circumference' significantly differs across different levels of 'Tree'.
+
+##Interaction Effect ('age:Tree'):
+  
+Degrees of Freedom (Df): 4
+Sum of Squares (Sum Sq): 4042.90
+Mean Square (Mean Sq): 1010.72
+F-value: 9.321
+p-value (Pr(>F)): 9.40e-05 (extremely small)
+The interaction effect between 'age' and 'Tree' is highly significant, suggesting that the effect of 'age' on 'circumference' is not consistent across all levels of 'Tree', and vice versa.
+
+# Residuals:
+Degrees of Freedom (Df): 25
+Sum of Squares (Sum Sq): 2710.99
+Mean Square (Mean Sq): 108.44
+The residuals represent the unexplained variation in 'circumference' that is not accounted for by 'age', 'Tree', or their interaction.
+
+#Residual Standard Error:
+Residual standard error: 10.41344
+This provides an estimate of the standard deviation of the residuals.
+
+Here post hoc analysis is required.
+
+## Post- Hoc Analysis:
+
+```{r}
+##post-hoc analysis:
+library(agricolae)
+tukey_result <- TukeyHSD(two_way_anova)
+print(tukey_result)
+
+plot(tukey_result)
+```
+From the post- hoc analysis,
+
+## Conclusion:
+
+The post-hoc analysis using TukeyHSD shows that there are statistically significant differences in the mean levels of tree differences between the following pairs of treatments:
+  
+4 and 5
+2 and 5
+4 and 1
+2 and 1
+5 and 1
+
+The differences in the mean levels of tree differences between the following pairs of treatments are not statistically significant:
+4 and 3
+2 and 3
+5 and 3
+1 and 3
+
+## Conclusion:
+The project provides valuable insights into the growth patterns of orange trees. Both 'age' and 'Tree' significantly  impact the trunk circumference, with varying effects across different tree groups. Post-hoc analysis pinpointed specific pairs of tree groups with significant differences, offering detailed information about the distinct growth patterns.
+
+Here, we’ve failed to reject the null hypothesis.
+
+Therefore,
+The mean circumference is the same across all levels of the "Tree" factor.
+The mean circumference is the same across all levels of the "Age" factor.
+There is no interaction effect between the "Tree" and "Age" factors on the mean circumference
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
